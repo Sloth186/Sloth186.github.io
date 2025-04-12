@@ -1,0 +1,197 @@
+---
+title: "Mini Project 1"
+author: "Shen Rothermel"
+format: html
+---
+
+```{r}
+#| warning: false
+
+library(ggthemes)
+library(htmltools)
+library(leaflet)
+library(maps)
+library(sf)
+library(tidyr)
+library(tidyverse)
+library(viridis)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Load mapping data
+us_states <- tibble(map_data("state"))
+sf_states <- read_sf("https://rstudio.github.io/leaflet/json/us-states.geojson")
+```
+
+```{r}
+# Column names for the variables of the us_emissions data set
+us_emissions_col_names <- c("state", "year", "total_ghg_no_lucf", "total_ghg_with_lucf", "total_co2_no_lucf", "total_ch4", "total_n2o", "total_f_gas", "energy", "industrial_processes", "agriculture", "waste", "lucf", "bunker_fuels", "electric_power", "commercial", "residential", "industrial", "transportation", "fugitive_emissions", "state_gdp", "population", "total_energy_use")
+
+# Read the emission levels data, tidying up as necessary
+us_emissions <- read_csv("C:/Users/scrot/Documents/St. Olaf - Junior/Data Science II/SDS264_S25/Mini_Project_1/Data/climatewatch-usemissions.csv", col_names = us_emissions_col_names, skip = 4, show_col_types = F)
+
+us_emissions
+```
+
+```{r}
+# Joins us_emissions data with polygon data for each state
+joined <- us_emissions |> 
+	mutate(state = str_to_lower(state)) |> 
+	right_join(us_states,
+						 by = join_by(state == region),
+						 relationship = "many-to-many")
+```
+
+```{r}
+#| fig-alt: "This is a map of the states of the United States of America. Each is colored to depict the state's emission levels from the energy sector, ranging from 0 to 800 metric tonnes of carbon dioxide equivalent. The colorings of the states suggest that most midwestern states have levels under 200, eastern states tend to be around 300 except for the far northeastern area. California stands out with its color, showing a level around 400, and Texas stands out the most with a level of around 800."
+
+joined |> 
+	filter(year == 2018) |> # We want just data from the year 2018
+	ggplot(aes(long, lat, group = group)) +
+	geom_polygon(aes(fill = energy), color = "black") +
+	scale_fill_viridis(option = "rocket", direction = -1) +
+	labs(title = "Greenhouse Gas Emissions Due to Energy (2018)",
+			 fill = "Emissions (MtCO2e)",
+			 caption = "Data from Climate Watch - https://www.wri.org/data/climate-watch-us-states-greenhouse-gas-emissions\nMtCO2 = Metric tonnes of CO2 equivalent") +
+	theme_map()
+```
+
+Alt text (since I'm not sure if PDFs can be inspected to see the alt text in the element):
+
+This is a map of the states of the United States of America. Each is colored to depict the state's emission levels from the energy sector, ranging from 0 to 800 metric tonnes of carbon dioxide equivalent. The colorings of the states suggest that most midwestern states have levels under 200, eastern states tend to be around 300 except for the far northeastern area. California stands out with its color, showing a level around 400, and Texas stands out the most with a level of around 800.
+
+```{r}
+#| fig-alt: "This is a map of the states of the United States of America. Each has one of four colors to depict the state's total greenhouse gas emissions, not accounting for the land use sector. Yellow means under 100 metric tonnes of carbon dioxide equivalent, green means between 100 and 300, blue means between 300 and 500, and purple is over 500. Most midwestern states along with the northeastern states and a couple southeastern states are yellow. Most central states and a few southwestern states are green. California is the only blue state, and Texas is the only purple state."
+
+joined |>
+	filter(year == 2018) |> 
+	mutate(ghg_bins = cut(total_ghg_no_lucf, # Converts continuous to discrete using bins
+												breaks = c(-20, 100, 300, 500, 950),
+												labels = c("Under 100",
+																	 "Between 100 & 300",
+																	 "Between 300 & 500", "Over 500"))) |>
+	ggplot(aes(long, lat, group = group)) +
+	geom_polygon(aes(fill = ghg_bins), color = "black") +
+	scale_fill_viridis_d(direction = -1) +
+	labs(title = "Total Greenhouse Gas Emissions in 2018 (without LUCF)",
+			 fill = "Emissions (MtCO2e)",
+			 caption = "Data from Climate Watch - https://www.wri.org/data/climate-watch-us-states-greenhouse-gas-emissions\nMtCO2 = Metric tonnes of CO2 equivalent") +
+	theme_map()
+```
+
+Alt text
+
+This is a map of the states of the United States of America. Each has one of four colors to depict the state's total greenhouse gas emissions, not accounting for the land use sector. Yellow means under 100 metric tonnes of carbon dioxide equivalent, green means between 100 and 300, blue means between 300 and 500, and purple is over 500. Most midwestern states along with the northeastern states and a couple southeastern states are yellow. Most central states and a few southwestern states are green. California is the only blue state, and Texas is the only purple state.
+
+Link to Github for code, including that for the interactive plots
+
+https://github.com/Sloth186/SDS264_S25/tree/main/Mini%20Project%201
+
+```{r}
+#| echo: false
+#| eval: false
+
+# Bar chart to compare emission levels (total ghg excluding LUCF) among states
+us_emissions |> 
+	filter(year == 2018, state != "United States") |> 
+	mutate(state = fct_reorder(state, total_ghg_no_lucf)) |> 
+	ggplot(aes(state, total_ghg_no_lucf)) +
+	geom_col() +
+	coord_flip()
+```
+
+```{r}
+#| echo: false
+#| eval: false
+
+# Bar chart to compare emission levels (from the energy sector) among states
+us_emissions |> 
+	filter(year == 2018, state != "United States") |> 
+	mutate(state = fct_reorder(state, energy)) |> 
+	ggplot(aes(state, energy)) +
+	geom_col() +
+	coord_flip()
+```
+
+```{r}
+# Joins emissions data to mapping data for use in interactive map
+joined_interactive <- us_emissions |> 
+	filter(year == 2018) |> 
+	right_join(sf_states, by = join_by(state == name)) |> 
+	filter(!(state %in% c("District of Columbia", "Puerto Rico"))) |> 
+	select(state, geometry, total_ghg_no_lucf, energy)
+```
+
+```{r}
+#| warning: false
+
+# Adds labels to each state to provide additional information when hovering over one
+joined_energy_interactive <- joined_interactive |> 
+	mutate(energy_labels = str_c(state, ": ", energy, " MtCO2e"))
+
+# Turns labels into an HTML object
+energy_labels <- lapply(joined_energy_interactive$energy_labels, HTML)
+
+# Need to convert tibble back to an sf object so that geometry is recognized
+leaflet(sf::st_as_sf(joined_energy_interactive)) |> 
+	setView(-96, 37.8, 4) |> 
+	addTiles() |> 
+	addPolygons(
+		fillColor = ~colorNumeric("YlOrRd", energy)(energy), # Color scale
+		weight = 2,
+		opacity = 1,
+		color = "black",
+		dashArray = "3",
+		fillOpacity = 0.7,
+		highlightOptions = highlightOptions(
+			weight = 5,
+			color = "#666",
+			dashArray = "",
+			fillOpacity = 0.7,
+			bringToFront = TRUE),
+		label = energy_labels,
+		labelOptions = labelOptions(
+			style = list("font-weight" = "normal", padding = "3px 8pm"),
+			textsize = "15px",
+			direction = "auto")) |> 
+	addLegend(pal = colorNumeric("YlOrRd", joined_energy_interactive$energy), values = ~energy, opacity = 0.7, title = "Emissions due to energy", position = "bottomright")
+```
+
+```{r}
+#| warning: false
+
+# Adds labels to each state to provide additional information when hovering over one
+joined_total_interactive <- joined_interactive |> 
+	mutate(ghg_labels = str_c(state, ": ", total_ghg_no_lucf, " MtCO2e"))
+
+# Turns labels into an HTML object
+ghg_labels <- lapply(joined_total_interactive$ghg_labels, HTML)
+
+# Creates bins to convert the continuous scale to a discrete scale
+ghg_bins <- c(-1, 25, 50, 75, 125, 200, 275, 500, 925)
+pal <- colorBin("YlOrRd", domain = joined_total_interactive$total_ghg_no_lucf, bins = ghg_bins)
+
+# Need to convert tibble back to an sf object so that geometry is recognized
+leaflet(sf::st_as_sf(joined_total_interactive)) |> 
+	setView(-96, 37.8, 4) |> 
+	addTiles() |> 
+	addPolygons(
+		fillColor = ~pal(total_ghg_no_lucf), # Color scale
+		weight = 2,
+		opacity = 1,
+		color = "black",
+		dashArray = "3",
+		fillOpacity = 0.7,
+		highlightOptions = highlightOptions(
+			weight = 5,
+			color = "#666",
+			dashArray = "",
+			fillOpacity = 0.7,
+			bringToFront = TRUE),
+		label = ghg_labels,
+		labelOptions = labelOptions(
+			style = list("font-weight" = "normal", padding = "3px 8pm"),
+			textsize = "15px",
+			direction = "auto")) |> 
+	addLegend(pal = pal, values = ~total_ghg_no_lucf, opacity = 0.7, title = "Total Greenhouse Gas Emissions (without LUCF)", position = "bottomright")
+```

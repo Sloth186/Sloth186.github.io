@@ -1,11 +1,16 @@
 ---
-title: "Sloth186.github.io"
+title: "Shen Rothermel"
+image: media/shen_headshot.jpg
+toc: false
+about:
+  template: trestles
+  links:
+    - text: GitHub
+      href: https://github.com/Sloth186
+    - text: Email
+      href: mailto:rothpm24@gmail.com
 ---
 
-This is a Quarto website.
-
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
-
-```{r}
-1 + 1
-```
+::: {#intro-heading}
+Greetings and salutations! My name is Shen Rothermel and I am currently a Junior at St. Olaf College in Northfield, working towards my Computer Science & Mathematics degree. My hobbies are numerous, but amongst them are anime, gaming, coding, and hanging out with my friends! I also immensely enjoy cats. Cats are very important.
+:::

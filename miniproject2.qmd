@@ -1,0 +1,143 @@
+---
+title: "Mini-Project 2"
+author: "Tenzin Gyaltsen, Shen Rothermel"
+format: html
+---
+
+## Introduction
+
+In this project, we explored soccer statistics from multiple professional football leagues using data from FBref (https://fbref.com/en/comps/22/Major-League-Soccer-Stats), a trusted site for advanced football analytics. While we initially focused on Major League Soccer (MLS), we extended our analysis to include other major international competitions such as the Premier League, La Liga, Bundesliga, and Serie A.
+
+Our goal was to collect and organize standardized squad-level statistics across leagues to support comparative analysis. Specifically, we targeted the "Squad Standard Stats" tables on each competition’s main stats page. These tables contain information on team performance metrics such as matches played, goals, assists, average age, possession %, and more.
+
+## Motivation
+
+We chose this dataset primarily out of personal interest: one of us enjoys following global football news, while the other is an avid FC25 player. Beyond our curiosity, we recognized that this data offers a rich opportunity for cross-league comparisons.
+
+By scraping the same type of statistics from each league, we aimed to answer questions such as:
+
+-   Do older squads tend to score more or less?
+-   Is there a relationship between average age and possession percentage?
+-   How does team performance (e.g., goals, assists) vary across leagues?
+
+These questions open the door for future data visualizations (like scatterplots or heatmaps) and statistical modeling (e.g., regression of goals on age or possession).
+
+To acquire the data, we used a custom scraping function along with an iteration technique (pmap) to systematically collect comparable squad stats from each league's respective webpage. This ensures consistency while handling slight variations in webpage structure — such as differing table positions.
+
+## Scraping the “Squad Standard Stats” table:
+
+To begin, we manually scrape the Major League Soccer (MLS) stats page using rvest. This allows us to locate and inspect the structure of all tables on the page, which helps identify the correct table containing squad-level statistics.
+
+Once we confirm the correct table is loaded (in this case, table 5), we clean it by promoting the first row to column headers, standardizing names, and parsing numeric columns. This results in a tidy dataset ready for analysis.
+
+```{r}
+#| message: FALSE
+#| include: FALSE
+#| warning: FALSE
+
+library(rvest)
+library(janitor)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(readr)
+
+# Check permissions for the specific stats page
+robotstxt::paths_allowed("https://fbref.com/en/comps/22/Major-League-Soccer-Stats")
+
+# Step 1: Read the page with rvest
+MLS_table <- read_html("https://fbref.com/en/comps/22/Major-League-Soccer-Stats")
+
+# Step 2: Extract tables from the page
+Squad <- html_nodes(MLS_table, "table")
+html_table(Squad, header = TRUE, fill = TRUE)  # find right table
+
+# Step 3: Extract the correct table (the fifth table on the page)
+Squad2 <- html_table(Squad, header = TRUE, fill = TRUE)[[5]]
+Squad2
+
+# Step 4: Keep only relevant columns and clean the data
+Squad2_cleaned <- Squad2 |>
+  row_to_names(row_number = 1) |>   # promotes row 1 to column names
+  clean_names() |>                  # make the column names snake_case
+  select(1:16) |>                   # keep only the first 16 columns
+  filter(squad != "Squad") |>       # remove header repeats if any
+  mutate(across(2:16, parse_number))# apply parse_number to cols 2–16
+Squad2_cleaned
+```
+
+## Creating a Custom Web Scraping Function:
+
+Next, we generalize this scraping process by writing a custom function called scrape_fbref_table(). This function takes in a URL and table number and performs all the cleaning steps automatically. We use it to easily scrape multiple pages later on.
+
+```{r}
+#| message: FALSE
+#| include: FALSE
+#| warning: FALSE
+
+# Custom Function
+scrape_fbref_table <- function(url, table_number = 5, n_cols = 16) {
+  page <- read_html(url)
+  tables <- html_nodes(page, "table")
+  raw_table <- html_table(tables, fill = TRUE)[[table_number]]
+  
+  cleaned_table <- raw_table |>
+    row_to_names(row_number = 1) |>
+    clean_names() |>
+    select(1:n_cols) |>
+    filter(squad != "Squad") |>
+    mutate(across(all_of(2:n_cols), parse_number))
+  
+  return(cleaned_table)
+}
+
+Squad2_cleaned <- scrape_fbref_table("https://fbref.com/en/comps/22/Major-League-Soccer-Stats")
+```
+
+```{r}
+Squad2_cleaned
+```
+
+## Iterating Over Multiple Competitions
+
+We used purrr::pmap() to iterate over multiple variables — specifically, league URLs, the table numbers containing the "Squad Standard Stats" table for each competition, and the league names. This allowed us to apply our custom scraping function across multiple soccer leagues, each with its own unique webpage and table structure. This approach demonstrates how iteration over multiple inputs can automate the data collection process across structured but inconsistent sources.
+
+```{r}
+#| message: FALSE
+#| include: FALSE
+#| warning: FALSE
+
+# Step 1: Define league names, URLs, and their specific table numbers
+leagues <- tibble::tibble(
+  league = c("MLS", "Premier_League", "La_Liga", "Bundesliga", "Serie_A"),
+  url = c(
+    "https://fbref.com/en/comps/22/Major-League-Soccer-Stats",
+    "https://fbref.com/en/comps/9/Premier-League-Stats",
+    "https://fbref.com/en/comps/12/La-Liga-Stats",
+    "https://fbref.com/en/comps/20/Bundesliga-Stats",
+    "https://fbref.com/en/comps/11/Serie-A-Stats"
+  ),
+  table_number = c(5, 3, 3, 3, 3)  # Specify table index for each league
+)
+
+# Step 2: Scrape each league using map3 to pass 3 arguments
+league_tables <- pmap(
+  list(leagues$url, leagues$table_number, leagues$league),
+  function(url, table_num, league_name) {
+    scrape_fbref_table(url, table_number = table_num) |> 
+      mutate(league = league_name)  # Optionally tag league in each table
+  }
+)
+
+# Step 3: Name each list entry by league
+names(league_tables) <- leagues$league
+```
+
+```{r}
+# Now each league table is separate and named:
+league_tables$MLS
+league_tables$Premier_League
+league_tables$La_Liga
+league_tables$Bundesliga
+league_tables$Serie_A
+```
