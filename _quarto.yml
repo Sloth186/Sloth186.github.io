@@ -10,6 +10,7 @@ website:
         text: Home
       - miniproject1.qmd
       - miniproject2.qmd
+      - miniproject4.qmd
 
 format:
   html:

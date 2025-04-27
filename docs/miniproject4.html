@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Shen Rothermel">
 
-<title>Shen Rothermel</title>
+<title>Mini Project 4 – Shen Rothermel</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -33,6 +34,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
@@ -88,7 +90,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -100,7 +102,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Mini-Project 2</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./miniproject4.html"> 
+    <a class="nav-link active" href="./miniproject4.html" aria-current="page"> 
 <span class="menu-text">Mini Project 4</span></a>
   </li>  
 </ul>
@@ -114,37 +116,107 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#tweet-sizes" id="toc-tweet-sizes" class="nav-link" data-scroll-target="#tweet-sizes">Tweet Sizes</a></li>
+  <li><a href="#religious-tweets" id="toc-religious-tweets" class="nav-link" data-scroll-target="#religious-tweets">Religious Tweets</a></li>
+  <li><a href="#tweet-moods" id="toc-tweet-moods" class="nav-link" data-scroll-target="#tweet-moods">Tweet Moods</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<div class="quarto-about-trestles column-page">
-  <div class="about-entity">
-    <img src="media/shen_headshot.jpg" class="about-image
-  rounded " style="width: 20em;">
+<main class="content column-page-left" id="quarto-document-content">
+
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Shen Rothermel</h1>
+<h1 class="title">Mini Project 4</h1>
 </div>
-<div class="quarto-title-meta column-page">
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shen Rothermel </p>
+          </div>
   </div>
+    
+  
+    
+  </div>
+  
+
+
 </header>
-    <div class="about-links">
-  <a href="https://github.com/Sloth186" class="about-link" rel="" target="">
-     <span class="about-link-text">GitHub</span>
-  </a>
-  <a href="mailto:rothpm24@gmail.com" class="about-link" rel="" target="">
-     <span class="about-link-text">Email</span>
-  </a>
-</div>
-  </div>
-  <div class="about-contents"><main class="content column-page" id="quarto-document-content">
-<div id="intro-heading">
-<p>Greetings and salutations! My name is Shen Rothermel and I am currently a Junior at St.&nbsp;Olaf College in Northfield, working towards my Computer Science &amp; Mathematics degree. My hobbies are numerous, but amongst them are anime, gaming, coding, and hanging out with my friends! I also immensely enjoy cats. Cats are very important.</p>
-</div>
 
 
-</main></div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>On this page, we will take a very brief look at the tweets from POTUS and FLOTUS on Twitter (now known as X) during the Obama Administration.</p>
+<section id="tweet-sizes" class="level3">
+<h3 class="anchored" data-anchor-id="tweet-sizes">Tweet Sizes</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="miniproject4_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
- <!-- /main -->
+</div>
+</div>
+<p>To start simple, we can observe from the graph above that tweets from either Barack or Michelle tended to be no longer than 150 characters long, with the exception of a couple towards the end of 2016 - possibly signifying tweets relating to the end of the Obama Administration?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="miniproject4_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>With this graph, we make a tiny modification by concerning ourselves with the number of words in each tweet rather than the number of characters. We can see that the patterns between the two are largely the same - which is unsuprising. Word counts also tend to not surpass 30, which could suggest an average of 5 characters per word used? Although, character count would also include punctuation and spacing, so this is likely a flawed conjecture. Regardless, it is apparent that these tweets are often pretty brief - but there are many!</p>
+</section>
+<section id="religious-tweets" class="level3">
+<h3 class="anchored" data-anchor-id="religious-tweets">Religious Tweets</h3>
+<p>Barack and Michelle are Christian, and so we could take one approach to see how much of a relevance this had on their tweets by searching for how many included a mention of God.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+  person   num_tweets_with_god     n percentage_tweets_with_god
+  &lt;chr&gt;                  &lt;int&gt; &lt;int&gt;                      &lt;dbl&gt;
+1 Barack                     2   321                   0.00623 
+2 Michelle                   4  4018                   0.000996</code></pre>
+</div>
+</div>
+<p>As it turns out, not very many at all. Indeed, I calculated percentages here but those are barely meaningful - Barack and Michelle combined only mentioned God 6 times in their tweets. This is not necessarily suggestive of lack of faith - perhaps just a pointer to a possible commitment to separation of state and church.</p>
+</section>
+<section id="tweet-moods" class="level3">
+<h3 class="anchored" data-anchor-id="tweet-moods">Tweet Moods</h3>
+<p>Finally, being the President and First Lady, Barack and Michelle would likely focus their tweets around spreading positive messages.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="miniproject4_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Indeed, a quick text analysis reveal that the top ten words both of these folks use are of a positive sentiment (and overlap heavily)! They have a commitment to ensuring that the country they serve is healthy and supported!</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -165,6 +237,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
   toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
   const isCodeAnnotation = (el) => {
     for (const clz of el.classList) {
       if (clz.startsWith('code-annotation-')) {                     

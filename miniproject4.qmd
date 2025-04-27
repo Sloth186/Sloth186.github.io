@@ -1,0 +1,122 @@
+---
+title: "Mini Project 4"
+author: Shen Rothermel
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| include: false
+
+knitr::opts_chunk$set(echo = F, message = F, warning = F)
+```
+
+```{r}
+library(readr)
+library(tidyr)
+library(tidytext)
+library(tidyverse)
+```
+
+## Introduction
+
+On this page, we will take a very brief look at the tweets from POTUS and FLOTUS on Twitter (now known as X) during the Obama Administration.
+
+```{r}
+#| output: false
+
+#barack <- read_csv("Data/tweets_potus.csv") 
+barack <- read_csv("https://joeroith.github.io/264_spring_2025/Data/tweets_potus.csv")
+#michelle <- read_csv("Data/tweets_flotus.csv") 
+michelle <- read_csv("https://joeroith.github.io/264_spring_2025/Data/tweets_flotus.csv")
+
+tweets <- bind_rows(barack |> 
+                      mutate(person = "Barack"),
+                    michelle |> 
+                      mutate(person = "Michelle")) |>
+  mutate(timestamp = ymd_hms(timestamp))
+```
+
+### Tweet Sizes
+
+```{r}
+tweets1 <- tweets |>
+	mutate(tweet_length = str_length(text))
+
+tweets1 |>
+	ggplot(aes(x = timestamp, y = tweet_length)) +
+	geom_line(color = "blue") +
+	facet_wrap(~person, nrow = 2, scales = "free") +
+	labs(title = "Length of Tweets By POTUS and FLOTUS During the Obama Administration",
+			 x = "Timestamp",
+			 y = "Number of characters")
+```
+
+To start simple, we can observe from the graph above that tweets from either Barack or Michelle tended to be no longer than 150 characters long, with the exception of a couple towards the end of 2016 - possibly signifying tweets relating to the end of the Obama Administration?
+
+```{r}
+tweets2 <- tweets |>
+	mutate(tweet_words = str_count(text, "\\b") / 2)
+
+tweets2 |>
+	ggplot(aes(x = timestamp)) +
+	geom_line(aes(y = tweet_words), color = "orange") +
+	facet_wrap(~person, nrow = 2, scales = "free") +
+	labs(title = "Number of Words in Tweets By POTUS and FLOTUS During the Obama Administration",
+			 x = "Timestamp",
+			 y = "Number of Words")
+```
+
+With this graph, we make a tiny modification by concerning ourselves with the number of words in each tweet rather than the number of characters. We can see that the patterns between the two are largely the same - which is unsuprising. Word counts also tend to not surpass 30, which could suggest an average of 5 characters per word used? Although, character count would also include punctuation and spacing, so this is likely a flawed conjecture. Regardless, it is apparent that these tweets are often pretty brief - but there are many!
+
+### Religious Tweets
+
+Barack and Michelle are Christian, and so we could take one approach to see how much of a relevance this had on their tweets by searching for how many included a mention of God.
+
+```{r}
+tweets3 <- tweets |>
+	mutate(text_lower = str_to_lower(text)) |> 
+	filter(str_detect(text_lower, "god")) |> 
+	group_by(person) |> 
+	summarise(num_tweets_with_god = n()) |> 
+	left_join(count(tweets, person)) |>
+	mutate(percentage_tweets_with_god = num_tweets_with_god / n)
+
+tweets3
+```
+
+As it turns out, not very many at all. Indeed, I calculated percentages here but those are barely meaningful - Barack and Michelle combined only mentioned God 6 times in their tweets. This is not necessarily suggestive of lack of faith - perhaps just a pointer to a possible commitment to separation of state and church.
+
+### Tweet Moods
+
+Finally, being the President and First Lady, Barack and Michelle would likely focus their tweets around spreading positive messages.
+
+```{r}
+smart_stopwords <- get_stopwords(source = "smart")
+bing <- get_sentiments(lexicon = "bing")
+
+tweets_words <- tweets |>
+	unnest_tokens(word, text, token = "regex", pattern = "\\b\\W+\\b")
+
+tweets4 <- tweets_words |> 
+	anti_join(smart_stopwords) |> 
+	count(word, person) |> 
+	inner_join(bing) |> 
+	group_by(person) |> 
+	slice_max(n, n = 10)
+
+tweets4 |> 
+	ungroup() |> 
+	mutate(word = reorder_within(word, n, person)) |> 
+	ggplot(aes(x = word, y = n)) +
+	geom_col(fill = "lightblue", show.legend = F) +
+	scale_x_reordered() +
+	coord_flip() +
+	facet_wrap(~person, scales = "free") +
+	labs(title = "Top Words in Tweets By POTUS and FLOTUS During the Obama Administration",
+			 x = "Number of Usages",
+			 y = "Word")
+```
+
+Indeed, a quick text analysis reveal that the top ten words both of these folks use are of a positive sentiment (and overlap heavily)! They have a commitment to ensuring that the country they serve is healthy and supported!
